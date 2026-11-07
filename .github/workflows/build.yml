@@ -29,6 +29,12 @@ jobs:
           echo "supabase.url=${{ secrets.SUPABASE_URL }}" > local.properties
           echo "supabase.anon.key=${{ secrets.SUPABASE_ANON_KEY }}" >> local.properties
 
+      - name: Show ChatScreen code around the error
+        working-directory: NOVA
+        run: |
+          echo '--- ChatScreen.kt lines 185-215 ---'
+          nl -ba app/src/main/java/com/nova/messenger/ui/ChatScreen.kt | sed -n '185,215p'
+
       - name: Build
         working-directory: NOVA
         run: gradle assembleDebug --no-daemon
