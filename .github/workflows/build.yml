@@ -42,7 +42,7 @@ jobs:
           from pathlib import Path
           p = Path('app/src/main/java/com/nova/messenger/ui/ChatScreen.kt')
           s = p.read_text()
-          declaration = '    val premium = me?.hasPremiumAccess == true\\n'
+          declaration = '    val premium = me?.hasPremiumAccess == true' + chr(10)
           if s.count(declaration) != 1:
               raise SystemExit('Expected exactly one premium declaration; refusing unsafe patch')
           s = s.replace(declaration, '')
