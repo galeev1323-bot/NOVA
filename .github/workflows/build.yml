@@ -35,6 +35,25 @@ jobs:
           echo '--- ChatScreen.kt lines 185-215 ---'
           nl -ba app/src/main/java/com/nova/messenger/ui/ChatScreen.kt | sed -n '185,215p'
 
+      - name: Fix premium declaration order
+        working-directory: NOVA
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/java/com/nova/messenger/ui/ChatScreen.kt')
+          s = p.read_text()
+          declaration = '    val premium = me?.hasPremiumAccess == true\\n'
+          if s.count(declaration) != 1:
+              raise SystemExit('Expected exactly one premium declaration; refusing unsafe patch')
+          s = s.replace(declaration, '')
+          target = '    var wallpaper by remember(chatId, me?.chatTheme, premium)'
+          if s.count(target) != 1:
+              raise SystemExit('Could not find wallpaper declaration; refusing unsafe patch')
+          s = s.replace(target, declaration + target)
+          p.write_text(s)
+          print('Moved premium declaration above its first use.')
+          PY
+
       - name: Build
         working-directory: NOVA
         run: gradle assembleDebug --no-daemon
