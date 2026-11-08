@@ -69,6 +69,8 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
     private val dao = db.dao()
     private val scope get() = Graph.appScope
     val me = MutableStateFlow<Profile?>(null)
+    val isOwnerOrAdmin = MutableStateFlow(false)
+    val starsBalance = MutableStateFlow(0L)
     @Volatile var openChatId: String? = null
     val myId: String? get() = c.auth.currentUserOrNull()?.id
     private var channel: io.github.jan.supabase.realtime.RealtimeChannel? = null
@@ -129,7 +131,41 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
     }
 
     // ---------- profile ----------
-    suspend fun loadMe() { me.value = profile(myId ?: return) }
+    suspend fun loadMe() {
+        if (myId == null) {
+            me.value = null
+            isOwnerOrAdmin.value = false
+            starsBalance.value = 0L
+            return
+        }
+        me.value = profile(myId!!)
+        refreshStaffAccess()
+        refreshStars()
+    }
+
+    suspend fun refreshStaffAccess() {
+        isOwnerOrAdmin.value = runCatching {
+            c.postgrest.rpc("is_owner_or_admin").decodeAs<Boolean>()
+        }.getOrDefault(false)
+    }
+
+    suspend fun refreshStars() {
+        starsBalance.value = runCatching {
+            c.postgrest.rpc("get_my_stars").decodeAs<Long>()
+        }.getOrDefault(0L)
+    }
+
+    suspend fun grantStars(userId: String, amount: Long, reason: String) {
+        require(amount in 1L..1_000_000L) { "Количество звёзд должно быть от 1 до 1 000 000" }
+        require(reason.trim().isNotEmpty()) { "Укажи причину начисления" }
+        check(isOwnerOrAdmin.value) { "Недостаточно прав" }
+        c.postgrest.rpc("grant_stars", buildJsonObject {
+            put("p_user_id", userId)
+            put("p_amount", amount)
+            put("p_reason", reason.trim())
+        })
+        refreshStars()
+    }
     suspend fun profile(id: String): Profile? =
         c.from("profiles").select { filter { eq("id", id) } }.decodeSingleOrNull<Profile>()
     suspend fun profiles(ids: List<String>): List<Profile> =
