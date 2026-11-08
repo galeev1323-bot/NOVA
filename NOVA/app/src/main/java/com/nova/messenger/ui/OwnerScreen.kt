@@ -9,6 +9,7 @@ import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.nova.messenger.data.Graph
@@ -27,6 +28,8 @@ fun OwnerScreen(nav: NavHostController) {
     var selected by remember { mutableStateOf<Profile?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
+    var premiumDays by remember { mutableIntStateOf(30) }
+    var showPremiumDurations by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         runCatching { Graph.chats.refreshStaffAccess(); Graph.chats.refreshStars() }
@@ -114,6 +117,61 @@ fun OwnerScreen(nav: NavHostController) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            Text("Выдать NOVA Premium", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Выбери пользователя выше и срок действия Premium. Выдача подтверждается сервером и доступна только владельцу проекта.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Box {
+                OutlinedButton(
+                    onClick = { showPremiumDurations = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !busy,
+                ) {
+                    Text(if (premiumDays == 0) "Навсегда" else "$premiumDays дней")
+                }
+                DropdownMenu(
+                    expanded = showPremiumDurations,
+                    onDismissRequest = { showPremiumDurations = false },
+                ) {
+                    listOf(7, 30, 90, 180, 365, 0).forEach { days ->
+                        DropdownMenuItem(
+                            text = { Text(if (days == 0) "Навсегда" else "$days дней") },
+                            onClick = {
+                                premiumDays = days
+                                showPremiumDurations = false
+                            },
+                        )
+                    }
+                }
+            }
+            Button(
+                onClick = {
+                    val target = selected
+                    if (target == null) {
+                        message = "Сначала найди и выбери пользователя"
+                        return@Button
+                    }
+                    busy = true
+                    scope.launch {
+                        runCatching { Graph.chats.grantPremium(target.id, premiumDays) }
+                            .onSuccess {
+                                message = "Premium выдан пользователю @${target.username}: " +
+                                    if (premiumDays == 0) "навсегда" else "на $premiumDays дней"
+                            }
+                            .onFailure { message = it.message ?: "Не удалось выдать Premium" }
+                        busy = false
+                    }
+                },
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB8860B)),
+            ) {
+                Text(if (busy) "Выполняем…" else "Выдать Premium")
+            }
         }
     }
 }
