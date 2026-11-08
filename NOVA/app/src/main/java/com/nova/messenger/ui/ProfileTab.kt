@@ -57,6 +57,7 @@ private fun ProfileEffect(effect: String, modifier: Modifier) {
 @Composable
 fun ProfileTab(nav: NavHostController) {
     val me by Graph.chats.me.collectAsState()
+    val ownerAccess by Graph.chats.isOwnerOrAdmin.collectAsState()
     val scope = rememberCoroutineScope()
     val snack = remember { SnackbarHostState() }
     val pickAvatar = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -88,6 +89,7 @@ fun ProfileTab(nav: NavHostController) {
                 SettingRow(Icons.Rounded.DarkMode, "Тема приложения") { nav.navigate("settings/theme") }
                 SettingRow(Icons.Rounded.Security, "Безопасность") { nav.navigate("settings/security") }
                 SettingRow(Icons.Rounded.WorkspacePremium, if (me?.isPremium == true) "Управление Premium" else "NOVA Premium") { nav.navigate("settings/premium") }
+                if (ownerAccess) SettingRow(Icons.Rounded.AdminPanelSettings, "Меню владельца") { nav.navigate("owner") }
                 SettingRow(Icons.AutoMirrored.Rounded.Logout, "Выйти из аккаунта", danger = true) { scope.launch { runCatching { Graph.auth.signOut() } } }
             }
             Spacer(Modifier.height(24.dp))
