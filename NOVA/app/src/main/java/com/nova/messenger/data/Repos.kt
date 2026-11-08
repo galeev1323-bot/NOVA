@@ -166,6 +166,15 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
         })
         refreshStars()
     }
+
+    suspend fun grantPremium(userId: String, days: Int) {
+        require(days in listOf(0, 7, 30, 90, 180, 365)) { "Недопустимый срок Premium" }
+        check(isOwnerOrAdmin.value) { "Недостаточно прав" }
+        c.postgrest.rpc("grant_premium", buildJsonObject {
+            put("p_user_id", userId)
+            put("p_days", days)
+        })
+    }
     suspend fun profile(id: String): Profile? =
         c.from("profiles").select { filter { eq("id", id) } }.decodeSingleOrNull<Profile>()
     suspend fun profiles(ids: List<String>): List<Profile> =
