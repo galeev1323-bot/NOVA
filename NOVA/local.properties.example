@@ -1,0 +1,5 @@
+# Скопируйте в local.properties и подставьте значения из Supabase -> Project Settings -> API
+# Используйте ТОЛЬКО anon (public) ключ. service_role ключ в приложение класть нельзя!
+supabase.url=https://YOUR_PROJECT.supabase.co
+supabase.anon.key=YOUR_ANON_KEY
+# sdk.dir=/путь/к/Android/Sdk  (Android Studio добавит сам)
