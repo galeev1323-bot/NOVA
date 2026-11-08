@@ -40,7 +40,10 @@ begin
     where user_id = affected_user and role = 'owner'
   )
   where id = affected_user;
-  return coalesce(new, old);
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
 end;
 $$;
 
