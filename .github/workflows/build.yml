@@ -1,13 +1,17 @@
-
-name: Build APK
+name: Build NOVA 2.1.0 APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - nova-2.1.0
+    paths:
+      - 'NOVA/**'
+      - '.github/workflows/build.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -20,45 +24,22 @@ jobs:
         with:
           gradle-version: 8.9
 
-      - name: Unpack project
-        run: unzip -q "$(ls *.zip | head -1)"
-
-      - name: Configure keys
+      - name: Configure Supabase
         working-directory: NOVA
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          echo "supabase.url=${{ secrets.SUPABASE_URL }}" > local.properties
-          echo "supabase.anon.key=${{ secrets.SUPABASE_ANON_KEY }}" >> local.properties
+          test -n "$SUPABASE_URL" || (echo "Missing SUPABASE_URL secret" && exit 1)
+          test -n "$SUPABASE_ANON_KEY" || (echo "Missing SUPABASE_ANON_KEY secret" && exit 1)
+          printf 'supabase.url=%s\nsupabase.anon.key=%s\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > local.properties
 
-      - name: Show ChatScreen code around the error
-        working-directory: NOVA
-        run: |
-          echo '--- ChatScreen.kt lines 185-215 ---'
-          nl -ba app/src/main/java/com/nova/messenger/ui/ChatScreen.kt | sed -n '185,215p'
-
-      - name: Fix premium declaration order
-        working-directory: NOVA
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('app/src/main/java/com/nova/messenger/ui/ChatScreen.kt')
-          s = p.read_text()
-          declaration = '    val premium = me?.hasPremiumAccess == true' + chr(10)
-          if s.count(declaration) != 1:
-              raise SystemExit('Expected exactly one premium declaration; refusing unsafe patch')
-          s = s.replace(declaration, '')
-          target = '    var wallpaper by remember(chatId, me?.chatTheme, premium)'
-          if s.count(target) != 1:
-              raise SystemExit('Could not find wallpaper declaration; refusing unsafe patch')
-          s = s.replace(target, declaration + target)
-          p.write_text(s)
-          print('Moved premium declaration above its first use.')
-          PY
-
-      - name: Build
+      - name: Build debug APK
         working-directory: NOVA
         run: gradle assembleDebug --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nova-apk
+          name: nova-2.1.0-debug-apk
           path: NOVA/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
