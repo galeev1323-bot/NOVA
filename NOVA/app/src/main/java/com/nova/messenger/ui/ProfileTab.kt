@@ -75,6 +75,16 @@ fun ProfileTab(nav: NavHostController) {
                     Spacer(Modifier.height(10.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(me?.displayName ?: "…", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        if (me?.isOwner == true) {
+                            Spacer(Modifier.width(8.dp))
+                            Surface(color = Color(0x33FFC857), shape = RoundedCornerShape(50)) {
+                                Row(Modifier.padding(horizontal = 9.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Rounded.WorkspacePremium, contentDescription = null, tint = Color(0xFFFFC857), modifier = Modifier.size(15.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Владелец", color = Color(0xFFFFC857), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                         if (me?.isPremium == true) { Spacer(Modifier.width(6.dp)); PremiumBadge(20.dp) }
                     }
                     Text("@${me?.username ?: ""}", color = Cyan)
