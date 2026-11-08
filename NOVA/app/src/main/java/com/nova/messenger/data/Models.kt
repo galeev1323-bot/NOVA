@@ -15,6 +15,7 @@ data class Profile(
     @SerialName("last_seen") val lastSeen: String? = null,
     @SerialName("hide_last_seen") val hideLastSeen: Boolean = false,
     @SerialName("is_premium") val isPremium: Boolean = false,
+    @SerialName("is_owner") val isOwner: Boolean = false,
     @SerialName("premium_until") val premiumUntil: String? = null,
     @SerialName("chat_theme") val chatTheme: String = "default",
     @SerialName("avatar_frame") val avatarFrame: String = "none",
