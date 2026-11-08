@@ -138,6 +138,7 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
             starsBalance.value = 0L
             return
         }
+        runCatching { c.postgrest.rpc("sync_my_premium") }
         me.value = profile(myId!!)
         refreshStaffAccess()
         refreshStars()
