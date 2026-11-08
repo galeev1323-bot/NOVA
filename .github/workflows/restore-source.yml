@@ -1,0 +1,41 @@
+name: Restore NOVA source for 2.1.0
+
+on:
+  push:
+    branches:
+      - nova-2.1.0
+    paths:
+      - .github/workflows/restore-source.yml
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 2.1.0 branch
+        uses: actions/checkout@v4
+        with:
+          ref: nova-2.1.0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract original NOVA project
+        run: |
+          test -f nova-fixed2.zip
+          if [ -d NOVA ]; then
+            echo "NOVA source directory already exists; refusing to overwrite it."
+            exit 0
+          fi
+          unzip -q nova-fixed2.zip
+          test -f NOVA/settings.gradle || test -f NOVA/settings.gradle.kts
+          test -d NOVA/app
+          echo "Source archive extracted and verified."
+
+      - name: Commit restored source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add NOVA
+          git commit -m "Restore NOVA 2.0 source as base for 2.1.0"
+          git push origin HEAD:nova-2.1.0
