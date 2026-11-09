@@ -1,4 +1,4 @@
-name: Build NOVA 2.2.0 APK
+name: Build NOVA 2.2.0
 
 on:
   workflow_dispatch:
@@ -14,32 +14,55 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-
       - name: Configure Supabase
         working-directory: NOVA
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: \${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: \${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           test -n "$SUPABASE_URL" || (echo "Missing SUPABASE_URL secret" && exit 1)
           test -n "$SUPABASE_ANON_KEY" || (echo "Missing SUPABASE_ANON_KEY secret" && exit 1)
           printf 'supabase.url=%s\nsupabase.anon.key=%s\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > local.properties
-
       - name: Build debug APK
         working-directory: NOVA
         run: gradle assembleDebug --no-daemon
-
       - uses: actions/upload-artifact@v4
         with:
           name: nova-2.2.0-debug-apk
           path: NOVA/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+      - name: Check release signing secrets
+        env:
+          KEYSTORE_BASE64: \${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: \${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: \${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: \${{ secrets.KEY_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE_BASE64" || (echo "Missing KEYSTORE_BASE64 secret" && exit 1)
+          test -n "$KEYSTORE_PASSWORD" || (echo "Missing KEYSTORE_PASSWORD secret" && exit 1)
+          test -n "$KEY_ALIAS" || (echo "Missing KEY_ALIAS secret" && exit 1)
+          test -n "$KEY_PASSWORD" || (echo "Missing KEY_PASSWORD secret" && exit 1)
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nova-release.jks"
+          test -s "$RUNNER_TEMP/nova-release.jks" || (echo "Invalid keystore data" && exit 1)
+      - name: Build signed release APK and AAB
+        working-directory: NOVA
+        env:
+          RELEASE_STORE_FILE: \${{ runner.temp }}/nova-release.jks
+          RELEASE_STORE_PASSWORD: \${{ secrets.KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: \${{ secrets.KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: \${{ secrets.KEY_PASSWORD }}
+        run: gradle assembleRelease bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nova-2.2.0-release
+          path: |
+            NOVA/app/build/outputs/apk/release/*.apk
+            NOVA/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
