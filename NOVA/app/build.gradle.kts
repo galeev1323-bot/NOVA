@@ -13,6 +13,10 @@ val localProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 fun prop(k: String, d: String) = localProps.getProperty(k) ?: d
+val releaseStoreFile = System.getenv("RELEASE_STORE_FILE")
+val releaseStorePassword = System.getenv("RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = System.getenv("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("RELEASE_KEY_PASSWORD")
 
 android {
     namespace = "com.nova.messenger"
@@ -21,14 +25,31 @@ android {
         applicationId = "com.nova.messenger"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
-        buildConfigField("String", "SUPABASE_URL", "\"${prop("supabase.url", "https://YOUR_PROJECT.supabase.co")}\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${prop("supabase.anon.key", "YOUR_ANON_KEY")}\"")
+        versionCode = 2
+        versionName = "2.2.0"
+        buildConfigField("String", "SUPABASE_URL", "\"\${prop("supabase.url", "https://YOUR_PROJECT.supabase.co")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"\${prop("supabase.anon.key", "YOUR_ANON_KEY")}\"")
         buildConfigField("String", "PREMIUM_PRODUCT_ID", "\"nova_premium_monthly\"")
+    }
+    signingConfigs {
+        if (!releaseStoreFile.isNullOrBlank() &&
+            !releaseStorePassword.isNullOrBlank() &&
+            !releaseKeyAlias.isNullOrBlank() &&
+            !releaseKeyPassword.isNullOrBlank()
+        ) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
     buildTypes {
         release {
+            if (signingConfigs.findByName("release") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
