@@ -47,7 +47,6 @@ jobs:
           test -n "$KEYSTORE_BASE64" || (echo "Missing KEYSTORE_BASE64 secret" && exit 1)
           test -n "$KEYSTORE_PASSWORD" || (echo "Missing KEYSTORE_PASSWORD secret" && exit 1)
           test -n "$KEY_ALIAS" || (echo "Missing KEY_ALIAS secret" && exit 1)
-          test -n "$KEY_PASSWORD" || (echo "Missing KEY_PASSWORD secret" && exit 1)
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nova-release.jks"
           test -s "$RUNNER_TEMP/nova-release.jks" || (echo "Invalid keystore data" && exit 1)
       - name: Build signed release APK and AAB
