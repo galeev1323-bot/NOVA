@@ -24,8 +24,8 @@ jobs:
       - name: Configure Supabase
         working-directory: NOVA
         env:
-          SUPABASE_URL: \${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: \${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           test -n "$SUPABASE_URL" || (echo "Missing SUPABASE_URL secret" && exit 1)
           test -n "$SUPABASE_ANON_KEY" || (echo "Missing SUPABASE_ANON_KEY secret" && exit 1)
@@ -40,10 +40,9 @@ jobs:
           if-no-files-found: error
       - name: Check release signing secrets
         env:
-          KEYSTORE_BASE64: \${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: \${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: \${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: \${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           test -n "$KEYSTORE_BASE64" || (echo "Missing KEYSTORE_BASE64 secret" && exit 1)
           test -n "$KEYSTORE_PASSWORD" || (echo "Missing KEYSTORE_PASSWORD secret" && exit 1)
@@ -54,10 +53,10 @@ jobs:
       - name: Build signed release APK and AAB
         working-directory: NOVA
         env:
-          RELEASE_STORE_FILE: \${{ runner.temp }}/nova-release.jks
-          RELEASE_STORE_PASSWORD: \${{ secrets.KEYSTORE_PASSWORD }}
-          RELEASE_KEY_ALIAS: \${{ secrets.KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: \${{ secrets.KEY_PASSWORD }}
+          RELEASE_STORE_FILE: ${{ runner.temp }}/nova-release.jks
+          RELEASE_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: gradle assembleRelease bundleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with:
