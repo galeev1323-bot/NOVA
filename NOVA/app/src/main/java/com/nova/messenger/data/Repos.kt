@@ -139,8 +139,14 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
             return
         }
         runCatching { c.postgrest.rpc("sync_my_premium") }
-        me.value = profile(myId!!)
+        val profile = profile(myId!!)
         refreshStaffAccess()
+        val isOwner = runCatching {
+            c.from("staff_roles").select(Columns.list("role")) {
+                filter { eq("user_id", myId!!) }
+            }.decodeSingleOrNull<StaffRole>()?.role == "owner"
+        }.getOrDefault(false)
+        me.value = profile?.copy(isOwner = isOwner)
         refreshStars()
     }
 
