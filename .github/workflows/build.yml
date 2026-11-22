@@ -1,10 +1,10 @@
-name: Build NOVA 2.2.0
+name: Build NOVA 2.3.0
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - nova-2.2.0
+      - nova-2.3.0
     paths:
       - 'NOVA/**'
       - '.github/workflows/build.yml'
@@ -35,7 +35,7 @@ jobs:
         run: gradle assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: nova-2.2.0-debug-apk
+          name: nova-2.3.0-debug-apk
           path: NOVA/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
       - name: Check release signing secrets
@@ -59,7 +59,7 @@ jobs:
         run: gradle assembleRelease bundleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: nova-2.2.0-release
+          name: nova-2.3.0-release
           path: |
             NOVA/app/build/outputs/apk/release/*.apk
             NOVA/app/build/outputs/bundle/release/*.aab
