@@ -165,7 +165,8 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
                 starsError.value = null
             }
             .onFailure {
-                starsBalance.value = 0L
+                // Keep the last known balance on transient/network errors. A failed refresh
+                // must not look like the user's wallet was reset to zero.
                 starsError.value = it.message ?: "Не удалось загрузить кошелёк Stars"
             }
     }
