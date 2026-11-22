@@ -147,7 +147,9 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
             c.from("staff_roles").select(Columns.list("role")) {
                 filter { eq("user_id", myId!!) }
             }.decodeSingleOrNull<StaffRole>()?.role == "owner"
-        }.getOrDefault(false)
+        }.getOrDefault(profile?.isOwner == true)
+        // profiles.is_owner is maintained by the server-side migration trigger.
+        // Keep that trusted flag as a fallback if the staff_roles read is temporarily unavailable.
         me.value = profile?.copy(isOwner = isOwner)
         refreshStars()
     }
