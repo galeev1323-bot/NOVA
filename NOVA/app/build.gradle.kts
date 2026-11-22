@@ -25,8 +25,8 @@ android {
         applicationId = "com.nova.messenger"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "2.2.0"
+        versionCode = 3
+        versionName = "2.3.0"
         buildConfigField("String", "SUPABASE_URL", "\"${prop("supabase.url", "https://YOUR_PROJECT.supabase.co")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${prop("supabase.anon.key", "YOUR_ANON_KEY")}\"")
         buildConfigField("String", "PREMIUM_PRODUCT_ID", "\"nova_premium_monthly\"")
