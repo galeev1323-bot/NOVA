@@ -71,6 +71,7 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
     val me = MutableStateFlow<Profile?>(null)
     val isOwnerOrAdmin = MutableStateFlow(false)
     val starsBalance = MutableStateFlow(0L)
+    val starsError = MutableStateFlow<String?>(null)
     @Volatile var openChatId: String? = null
     val myId: String? get() = c.auth.currentUserOrNull()?.id
     private var channel: io.github.jan.supabase.realtime.RealtimeChannel? = null
@@ -136,6 +137,7 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
             me.value = null
             isOwnerOrAdmin.value = false
             starsBalance.value = 0L
+            starsError.value = null
             return
         }
         runCatching { c.postgrest.rpc("sync_my_premium") }
@@ -157,9 +159,15 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
     }
 
     suspend fun refreshStars() {
-        starsBalance.value = runCatching {
-            c.postgrest.rpc("get_my_stars").decodeAs<Long>()
-        }.getOrDefault(0L)
+        runCatching { c.postgrest.rpc("get_my_stars").decodeAs<Long>() }
+            .onSuccess {
+                starsBalance.value = it
+                starsError.value = null
+            }
+            .onFailure {
+                starsBalance.value = 0L
+                starsError.value = it.message ?: "Не удалось загрузить кошелёк Stars"
+            }
     }
 
     suspend fun grantStars(userId: String, amount: Long, reason: String): Long {
