@@ -6,7 +6,15 @@
 ## 1. Backend (Supabase), ~10 минут
 1. Создайте проект на https://supabase.com.
 2. SQL Editor → вставьте и выполните весь файл `supabase/schema.sql`.
-3. Authentication → Providers:
+3. Для функций владельца (кошелёк Stars, выдача Premium и значок владельца) выполните
+   SQL-файлы из `supabase/migrations` по порядку:
+   - `20261108_stars_owner.sql`
+   - `20261108_owner_premium.sql`
+   - `20261108_owner_badge.sql`
+
+   Эти миграции нужно выполнить в существующем проекте Supabase отдельно от `schema.sql`.
+   Не пропускайте первую миграцию: следующие используют созданные ею роли владельца.
+4. Authentication → Providers:
    - **Email**: включите. Чтобы работало подтверждение и сброс пароля кодом, в
      Authentication → Email Templates замените ссылки на код: в шаблонах *Confirm signup* и
      *Reset password* используйте `{{ .Token }}`.
