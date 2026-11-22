@@ -21,6 +21,7 @@ fun OwnerScreen(nav: NavHostController) {
     val allowed by Graph.chats.isOwnerOrAdmin.collectAsState()
     val me by Graph.chats.me.collectAsState()
     val balance by Graph.chats.starsBalance.collectAsState()
+    val balanceError by Graph.chats.starsError.collectAsState()
     val scope = rememberCoroutineScope()
     var query by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("10") }
@@ -49,6 +50,9 @@ fun OwnerScreen(nav: NavHostController) {
                     Column {
                         Text("Мой кошелёк", style = MaterialTheme.typography.titleMedium)
                         Text("$balance звёзд", style = MaterialTheme.typography.headlineSmall)
+                        balanceError?.let {
+                            Text("Ошибка загрузки кошелька: $it", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             }
