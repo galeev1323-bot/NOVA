@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun OwnerScreen(nav: NavHostController) {
     val allowed by Graph.chats.isOwnerOrAdmin.collectAsState()
+    val me by Graph.chats.me.collectAsState()
     val balance by Graph.chats.starsBalance.collectAsState()
     val scope = rememberCoroutineScope()
     var query by remember { mutableStateOf("") }
@@ -52,6 +53,20 @@ fun OwnerScreen(nav: NavHostController) {
                 }
             }
             Text("Начислить звёзды пользователю", style = MaterialTheme.typography.titleMedium)
+            OutlinedButton(
+                onClick = {
+                    me?.let {
+                        selected = it
+                        query = "@${it.username}"
+                        results = emptyList()
+                        message = null
+                    }
+                },
+                enabled = me != null && !busy,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(if (me == null) "Загрузка профиля…" else "Выбрать себя (@${me!!.username})")
+            }
             OutlinedTextField(
                 value = query,
                 onValueChange = { value ->
@@ -103,7 +118,9 @@ fun OwnerScreen(nav: NavHostController) {
                     busy = true
                     scope.launch {
                         runCatching { Graph.chats.grantStars(target.id, count, reason) }
-                            .onSuccess { message = "Начислено $count звёзд пользователю @${target.username}" }
+                            .onSuccess { newBalance ->
+                                message = "Начислено $count звёзд пользователю @${target.username}. Новый баланс: $newBalance ⭐"
+                            }
                             .onFailure { message = it.message ?: "Не удалось начислить звёзды" }
                         busy = false
                     }
