@@ -156,16 +156,17 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
         }.getOrDefault(0L)
     }
 
-    suspend fun grantStars(userId: String, amount: Long, reason: String) {
+    suspend fun grantStars(userId: String, amount: Long, reason: String): Long {
         require(amount in 1L..1_000_000L) { "Количество звёзд должно быть от 1 до 1 000 000" }
         require(reason.trim().isNotEmpty()) { "Укажи причину начисления" }
         check(isOwnerOrAdmin.value) { "Недостаточно прав" }
-        c.postgrest.rpc("grant_stars", buildJsonObject {
+        val newBalance = c.postgrest.rpc("grant_stars", buildJsonObject {
             put("p_user_id", userId)
             put("p_amount", amount)
             put("p_reason", reason.trim())
-        })
-        refreshStars()
+        }).decodeAs<Long>()
+        if (userId == myId) starsBalance.value = newBalance
+        return newBalance
     }
 
     suspend fun grantPremium(userId: String, days: Int) {
