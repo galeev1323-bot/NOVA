@@ -22,6 +22,9 @@ data class Profile(
     @SerialName("profile_effect") val profileEffect: String = "none",
 )
 
+@Serializable
+data class StaffRole(val role: String)
+
 @Entity(tableName = "chats")
 @Serializable
 data class Chat(
