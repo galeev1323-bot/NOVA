@@ -19,8 +19,8 @@
      Authentication → Email Templates замените ссылки на код: в шаблонах *Confirm signup* и
      *Reset password* используйте `{{ .Token }}`.
    - **Phone**: включите и подключите SMS-провайдера (Twilio/MessageBird/Vonage) — без него SMS не уйдут.
-4. Project Settings → API: скопируйте **Project URL** и **anon public key**.
-5. (Для реального Premium) Деплой функции `supabase/functions/verify-play-purchase` и secrets
+5. Project Settings → API: скопируйте **Project URL** и **anon public key**.
+6. (Для реального Premium) Деплой функции `supabase/functions/verify-play-purchase` и secrets
    `GOOGLE_SERVICE_ACCOUNT_JSON`, `PLAY_PACKAGE_NAME`; в Play Console создайте подписку `nova_premium_monthly`.
 
 ## 2. Настройка приложения
