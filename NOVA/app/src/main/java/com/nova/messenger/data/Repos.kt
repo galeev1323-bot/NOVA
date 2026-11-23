@@ -186,6 +186,35 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
         return newBalance
     }
 
+    suspend fun transferStars(username: String, amount: Long, message: String = ""): Long {
+        require(username.matches(Regex("^[a-zA-Z0-9_]{3,32}$"))) { "Проверь @username" }
+        require(amount in 1L..100_000L) { "Можно перевести от 1 до 100 000 Stars" }
+        val newBalance = c.postgrest.rpc("transfer_stars", buildJsonObject {
+            put("p_username", username.lowercase())
+            put("p_amount", amount)
+            put("p_message", message.take(160))
+        }).decodeAs<Long>()
+        starsBalance.value = newBalance
+        starsError.value = null
+        return newBalance
+    }
+
+    suspend fun giftCatalog(): List<GiftCatalogItem> =
+        c.from("gift_catalog").select {
+            filter { eq("active", true) }
+            order("price_stars", Order.ASCENDING)
+        }.decodeList<GiftCatalogItem>()
+
+    suspend fun sendGift(username: String, giftId: String, message: String = "") {
+        require(username.matches(Regex("^[a-zA-Z0-9_]{3,32}$"))) { "Проверь @username" }
+        c.postgrest.rpc("send_gift", buildJsonObject {
+            put("p_username", username.lowercase())
+            put("p_gift_id", giftId)
+            put("p_message", message.take(160))
+        }).decodeAs<String>()
+        refreshStars()
+    }
+
     suspend fun grantPremium(userId: String, days: Int) {
         require(days in listOf(0, 7, 30, 90, 180, 365)) { "Недопустимый срок Premium" }
         check(isOwnerOrAdmin.value) { "Недостаточно прав" }
