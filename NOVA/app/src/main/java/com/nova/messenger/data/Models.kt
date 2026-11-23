@@ -31,6 +31,7 @@ data class GiftCatalogItem(
     val title: String,
     val emoji: String,
     @SerialName("price_stars") val priceStars: Long,
+    val active: Boolean = true,
 )
 
 @Entity(tableName = "chats")
