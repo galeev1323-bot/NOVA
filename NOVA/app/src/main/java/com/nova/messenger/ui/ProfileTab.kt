@@ -100,6 +100,7 @@ fun ProfileTab(nav: NavHostController) {
                 SettingRow(Icons.Rounded.Security, "Безопасность") { nav.navigate("settings/security") }
                 SettingRow(Icons.Rounded.WorkspacePremium, if (me?.isPremium == true) "Управление Premium" else "NOVA Premium") { nav.navigate("settings/premium") }
                 SettingRow(Icons.Rounded.Star, "Stars и подарки") { nav.navigate("stars") }
+                SettingRow(Icons.Rounded.SportsEsports, "Шахматы") { nav.navigate("chess") }
                 if (ownerAccess) SettingRow(Icons.Rounded.AdminPanelSettings, "Меню владельца") { nav.navigate("owner") }
                 SettingRow(Icons.AutoMirrored.Rounded.Logout, "Выйти из аккаунта", danger = true) { scope.launch { runCatching { Graph.auth.signOut() } } }
             }
