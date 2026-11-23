@@ -113,7 +113,7 @@ fun StarsScreen(nav: NavHostController) {
                 busy = true
                 scope.launch {
                     runCatching { Graph.chats.sendGift(username, giftId, note) }
-                        .onSuccess { feedback = "Подарок отправлен пользователю @$username"; selectedGift = null; history = Graph.chats.myGifts() }
+                        .onSuccess { feedback = "Подарок отправлен пользователю @$username"; selectedGift = null; runCatching { history = Graph.chats.myGifts() } }
                         .onFailure { feedback = it.message ?: "Не удалось отправить подарок" }
                     busy = false
                 }
