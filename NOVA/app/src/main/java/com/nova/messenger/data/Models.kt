@@ -38,6 +38,16 @@ data class ChessGame(
 )
 
 @Serializable
+data class GiftRecord(
+    val id: String,
+    @SerialName("sender_id") val senderId: String,
+    @SerialName("recipient_id") val recipientId: String,
+    @SerialName("gift_id") val giftId: String,
+    val message: String = "",
+    @SerialName("created_at") val createdAt: String = "",
+)
+
+@Serializable
 data class GiftCatalogItem(
     val id: String,
     val title: String,
