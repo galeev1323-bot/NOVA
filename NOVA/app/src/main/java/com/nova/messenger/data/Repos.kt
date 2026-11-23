@@ -205,6 +205,12 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
             order("price_stars", Order.ASCENDING)
         }.decodeList<GiftCatalogItem>()
 
+    suspend fun myGifts(): List<GiftRecord> =
+        c.from("gifts").select {
+            order("created_at", Order.DESCENDING)
+            limit(30)
+        }.decodeList<GiftRecord>()
+
     suspend fun sendGift(username: String, giftId: String, message: String = "") {
         require(username.matches(Regex("^[a-zA-Z0-9_]{3,32}$"))) { "Проверь @username" }
         c.postgrest.rpc("send_gift", buildJsonObject {
