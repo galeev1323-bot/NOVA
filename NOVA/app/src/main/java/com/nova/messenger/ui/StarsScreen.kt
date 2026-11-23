@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.nova.messenger.data.GiftCatalogItem
+import com.nova.messenger.data.GiftRecord
 import com.nova.messenger.data.Graph
 import kotlinx.coroutines.launch
 
@@ -25,6 +26,7 @@ fun StarsScreen(nav: NavHostController) {
     var amount by remember { mutableStateOf("10") }
     var note by remember { mutableStateOf("") }
     var gifts by remember { mutableStateOf<List<GiftCatalogItem>>(emptyList()) }
+    var history by remember { mutableStateOf<List<GiftRecord>>(emptyList()) }
     var selectedGift by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     var feedback by remember { mutableStateOf<String?>(null) }
@@ -33,6 +35,7 @@ fun StarsScreen(nav: NavHostController) {
         runCatching { Graph.chats.refreshStars() }
         runCatching { gifts = Graph.chats.giftCatalog() }
             .onFailure { feedback = it.message ?: "Не удалось загрузить подарки" }
+        runCatching { history = Graph.chats.myGifts() }
     }
 
     Column(
@@ -110,7 +113,7 @@ fun StarsScreen(nav: NavHostController) {
                 busy = true
                 scope.launch {
                     runCatching { Graph.chats.sendGift(username, giftId, note) }
-                        .onSuccess { feedback = "Подарок отправлен пользователю @$username"; selectedGift = null }
+                        .onSuccess { feedback = "Подарок отправлен пользователю @$username"; selectedGift = null; history = Graph.chats.myGifts() }
                         .onFailure { feedback = it.message ?: "Не удалось отправить подарок" }
                     busy = false
                 }
@@ -118,6 +121,24 @@ fun StarsScreen(nav: NavHostController) {
             enabled = !busy && gifts.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(),
         ) { Text(if (busy) "Отправляем…" else "Отправить подарок") }
+        HorizontalDivider(Modifier.padding(vertical = 6.dp))
+        Text("История подарков", style = MaterialTheme.typography.titleLarge)
+        if (history.isEmpty()) {
+            Text("Подарков пока нет", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            history.forEach { item ->
+                val catalogItem = gifts.firstOrNull { it.id == item.giftId }
+                val direction = if (item.senderId == Graph.chats.myId) "Ты отправил подарок" else "Тебе отправили подарок"
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text((catalogItem?.emoji ?: "🎁") + "  " + direction, style = MaterialTheme.typography.titleSmall)
+                        Text(catalogItem?.title ?: item.giftId, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (item.message.isNotBlank()) Text(item.message)
+                        Text(item.createdAt.take(10), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
         feedback?.let { Text(it, color = if (it.contains("не ") || it.contains("Ошибка")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) }
         Spacer(Modifier.height(24.dp))
     }
