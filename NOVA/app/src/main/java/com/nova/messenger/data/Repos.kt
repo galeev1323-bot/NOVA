@@ -215,6 +215,36 @@ class ChatRepo(private val c: SupabaseClient, private val db: NovaDb) {
         refreshStars()
     }
 
+    suspend fun createChessGame(username: String): String {
+        require(username.matches(Regex("^[a-zA-Z0-9_]{3,32}$"))) { "Проверь @username" }
+        return c.postgrest.rpc("create_chess_game", buildJsonObject {
+            put("p_username", username.lowercase())
+        }).decodeAs<String>()
+    }
+
+    suspend fun myChessGames(): List<ChessGame> =
+        c.postgrest.rpc("get_my_chess_games").decodeList<ChessGame>()
+
+    suspend fun acceptChessGame(gameId: String) {
+        c.postgrest.rpc("accept_chess_game", buildJsonObject { put("p_game_id", gameId) })
+    }
+
+    suspend fun submitChessMove(
+        gameId: String, expectedFen: String, newFen: String, moveUci: String, result: String,
+    ) {
+        c.postgrest.rpc("submit_chess_move", buildJsonObject {
+            put("p_game_id", gameId)
+            put("p_expected_fen", expectedFen)
+            put("p_new_fen", newFen)
+            put("p_move_uci", moveUci)
+            put("p_result", result)
+        })
+    }
+
+    suspend fun resignChessGame(gameId: String) {
+        c.postgrest.rpc("resign_chess_game", buildJsonObject { put("p_game_id", gameId) })
+    }
+
     suspend fun grantPremium(userId: String, days: Int) {
         require(days in listOf(0, 7, 30, 90, 180, 365)) { "Недопустимый срок Premium" }
         check(isOwnerOrAdmin.value) { "Недостаточно прав" }
