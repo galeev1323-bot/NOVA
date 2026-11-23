@@ -66,6 +66,7 @@ declare
   v_recipient uuid;
   v_sender_balance bigint;
   v_recipient_balance bigint;
+  v_sender_name text;
   v_username text := lower(trim(coalesce(p_username, '')));
 begin
   if v_sender is null then
@@ -86,6 +87,7 @@ begin
   if v_recipient = v_sender then
     raise exception 'cannot_transfer_to_self';
   end if;
+  select username into v_sender_name from public.profiles where id = v_sender;
 
   insert into public.star_wallets(user_id, balance)
   values (v_sender, 0), (v_recipient, 0)
@@ -116,8 +118,8 @@ begin
 
   insert into public.star_transactions(user_id, actor_id, amount, reason)
   values
-    (v_sender, v_sender, -p_amount, 'Перевод пользователю @' || v_username),
-    (v_recipient, v_sender, p_amount, 'Перевод от пользователя');
+    (v_sender, v_sender, -p_amount, 'Перевод пользователю @' || v_username || case when trim(coalesce(p_message, '')) = '' then '' else ': ' || left(trim(p_message), 160) end),
+    (v_recipient, v_sender, p_amount, 'Перевод от @' || v_sender_name || case when trim(coalesce(p_message, '')) = '' then '' else ': ' || left(trim(p_message), 160) end);
 
   return v_sender_balance;
 end;
