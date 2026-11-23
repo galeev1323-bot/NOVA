@@ -25,6 +25,14 @@ data class Profile(
 @Serializable
 data class StaffRole(val role: String)
 
+@Serializable
+data class GiftCatalogItem(
+    val id: String,
+    val title: String,
+    val emoji: String,
+    @SerialName("price_stars") val priceStars: Long,
+)
+
 @Entity(tableName = "chats")
 @Serializable
 data class Chat(
