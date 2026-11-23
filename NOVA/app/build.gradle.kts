@@ -96,4 +96,5 @@ dependencies {
     implementation("io.coil-kt:coil-gif:2.7.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("com.android.billingclient:billing-ktx:7.1.1")
+    implementation("com.github.bhlangonijr:chesslib:1.3.7")
 }
