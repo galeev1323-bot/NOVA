@@ -114,6 +114,7 @@ fun MainNav() {
         composable("settings/{page}") { SettingsScreen(it.arguments!!.getString("page")!!, nav) }
         composable("owner") { OwnerScreen(nav) }
         composable("stars") { StarsScreen(nav) }
+        composable("chess") { ChessScreen(nav) }
     }
 }
 
