@@ -1,5 +1,9 @@
 name: Build NOVA 2.3.0
 
+concurrency:
+  group: nova-2.3.0-build
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
