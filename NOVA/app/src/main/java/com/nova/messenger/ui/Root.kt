@@ -113,6 +113,7 @@ fun MainNav() {
         composable("chat/{id}") { ChatScreen(it.arguments!!.getString("id")!!, nav) }
         composable("settings/{page}") { SettingsScreen(it.arguments!!.getString("page")!!, nav) }
         composable("owner") { OwnerScreen(nav) }
+        composable("stars") { StarsScreen(nav) }
     }
 }
 
