@@ -26,6 +26,18 @@ data class Profile(
 data class StaffRole(val role: String)
 
 @Serializable
+data class ChessGame(
+    val id: String,
+    @SerialName("white_player") val whitePlayer: String,
+    @SerialName("black_player") val blackPlayer: String,
+    val fen: String,
+    val status: String,
+    @SerialName("last_move") val lastMove: String? = null,
+    @SerialName("created_at") val createdAt: String = "",
+    @SerialName("updated_at") val updatedAt: String = "",
+)
+
+@Serializable
 data class GiftCatalogItem(
     val id: String,
     val title: String,
