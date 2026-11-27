@@ -54,7 +54,7 @@ fun NovaRoot() {
             "splash" -> SplashScreen()
             "auth" -> AuthScreen()
             else -> AppBackground { Box(Modifier.fillMaxSize().systemBarsPadding().imePadding(), Alignment.TopCenter) {
-                Box(Modifier.widthIn(max = 720.dp).fillMaxSize()) { MainNav() } } }
+                Box(Modifier.widthIn(max = 1100.dp).fillMaxSize()) { MainNav() } } }
         }
     }
 }
