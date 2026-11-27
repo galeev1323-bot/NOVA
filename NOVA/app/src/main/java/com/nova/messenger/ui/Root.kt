@@ -115,6 +115,7 @@ fun MainNav() {
         composable("owner") { OwnerScreen(nav) }
         composable("stars") { StarsScreen(nav) }
         composable("chess") { ChessScreen(nav) }
+        composable("ai") { NovaAiScreen(onBack = { nav.popBackStack() }) }
     }
 }
 
