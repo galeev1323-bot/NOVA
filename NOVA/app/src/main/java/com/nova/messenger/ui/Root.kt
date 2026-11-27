@@ -125,7 +125,7 @@ fun TabsScreen(nav: NavHostController) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val items = listOf(
         TabItem("Чаты", Icons.Rounded.ChatBubble), TabItem("Контакты", Icons.Rounded.People),
-        TabItem("Premium", Icons.Rounded.WorkspacePremium), TabItem("Профиль", Icons.Rounded.Person),
+        TabItem("Premium", Icons.Rounded.WorkspacePremium), TabItem("Профиль", Icons.Rounded.Person), TabItem("Медиа", Icons.Rounded.Collections),
     )
     Scaffold(
         containerColor = androidx.compose.ui.graphics.Color.Transparent,
@@ -153,7 +153,7 @@ fun TabsScreen(nav: NavHostController) {
                     (slideOutHorizontally(tween(300)) { -dir * it / 4 } + fadeOut(tween(150)))
             },
         ) { t ->
-            when (t) { 0 -> ChatsTab(nav); 1 -> ContactsTab(nav); 2 -> PremiumTab(); else -> ProfileTab(nav) }
+            when (t) { 0 -> ChatsTab(nav); 1 -> ContactsTab(nav); 2 -> PremiumTab(); 3 -> ProfileTab(nav); else -> StoriesChannelsScreen() }
         }
     }
 }
