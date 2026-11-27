@@ -27,10 +27,38 @@ fun StoriesChannelsScreen() {
     val mediaPicker=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { stories=stories+("Медиа: "+it.toString()); info="Медиа URI сохранён в черновике. Для публикации нужно подключить Storage." }
     }
+    val exportPicker=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        uri?.let { target ->
+            runCatching {
+                val backup=JSONObject().put("format","NOVA_MEDIA_DRAFTS").put("version",1)
+                    .put("stories",JSONArray(stories))
+                    .put("channels",JSONArray().apply { channels.forEach { (t,a)->put(JSONObject().put("title",t).put("about",a)) } })
+                Graph.app.contentResolver.openOutputStream(target)?.use { it.write(backup.toString(2).toByteArray(Charsets.UTF_8)) } ?: error("Не удалось открыть файл")
+                info="Резервная копия сохранена."
+            }.onFailure { info="Ошибка экспорта: ${it.message ?: "неизвестно"}" }
+        }
+    }
+    val importPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { source ->
+            runCatching {
+                val text=Graph.app.contentResolver.openInputStream(source)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: error("Не удалось открыть файл")
+                val backup=JSONObject(text)
+                if(backup.optString("format")!="NOVA_MEDIA_DRAFTS") error("Это не резервная копия NOVA")
+                val newStories=backup.optJSONArray("stories")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList()
+                val newChannels=backup.optJSONArray("channels")?.let { a -> (0 until a.length()).map { val o=a.getJSONObject(it); o.getString("title") to o.optString("about") } } ?: emptyList()
+                stories=newStories; channels=newChannels
+                info="Черновики восстановлены."
+            }.onFailure { info="Ошибка импорта: ${it.message ?: "неизвестно"}" }
+        }
+    }
     LaunchedEffect(stories) { prefs.edit().putString("stories",JSONArray(stories).toString()).apply() }
     LaunchedEffect(channels) { prefs.edit().putString("channels",JSONArray().apply { channels.forEach { (t,a)->put(JSONObject().put("title",t).put("about",a)) } }.toString()).apply() }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Header("Истории и каналы")
+        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick={exportPicker.launch("nova-media-backup.json")}) { Icon(Icons.Rounded.Save,null); Text("Экспорт") }
+            OutlinedButton(onClick={importPicker.launch(arrayOf("application/json","text/json"))}) { Icon(Icons.Rounded.FolderOpen,null); Text("Импорт") }
+        }
         TabRow(selectedTabIndex=selected) {
             Tab(selected==0,{selected=0},text={Text("Истории")})
             Tab(selected==1,{selected=1},text={Text("Каналы")})
