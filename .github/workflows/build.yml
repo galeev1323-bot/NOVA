@@ -31,9 +31,12 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          test -n "$SUPABASE_URL" || (echo "Missing SUPABASE_URL secret" && exit 1)
-          test -n "$SUPABASE_ANON_KEY" || (echo "Missing SUPABASE_ANON_KEY secret" && exit 1)
-          printf 'supabase.url=%s\nsupabase.anon.key=%s\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > local.properties
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            printf 'supabase.url=%s\nsupabase.anon.key=%s\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > local.properties
+          else
+            printf 'supabase.url=https://YOUR_PROJECT.supabase.co\nsupabase.anon.key=YOUR_ANON_KEY\n' > local.properties
+            echo "Supabase secrets are not configured; APK will show backend setup screen."
+          fi
       - name: Build debug APK
         working-directory: NOVA
         run: gradle assembleDebug --no-daemon
@@ -48,8 +51,9 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ]; then
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
             echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/nova-release.jks"
             test -s "$RUNNER_TEMP/nova-release.jks" || (echo "Invalid keystore data" && exit 1)
@@ -64,7 +68,7 @@ jobs:
           RELEASE_STORE_FILE: ${{ runner.temp }}/nova-release.jks
           RELEASE_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: gradle assembleRelease bundleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         if: steps.release-signing.outputs.available == 'true'

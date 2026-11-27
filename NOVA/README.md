@@ -20,7 +20,7 @@
 Скопируйте `local.properties.example` → `local.properties`, впишите `supabase.url` и `supabase.anon.key`. Секретный service_role в приложение не добавляйте.
 
 ## 3. Сборка APK
-Android Studio: откройте папку проекта, дождитесь Gradle Sync, затем Build → Build APK(s). APK debug появится в `app/build/outputs/apk/debug/app-debug.apk`. Сборка ещё должна быть проверена GitHub Actions.
+Android Studio: откройте папку проекта, дождитесь Gradle Sync, затем Build → Build APK(s). APK debug появится в `app/build/outputs/apk/debug/app-debug.apk`. Сборка ещё должна быть проверена GitHub Actions. Если secrets Supabase отсутствуют, workflow соберёт APK с экраном настройки backend; signed release требует отдельные secrets подписи.
 
 ## Что подготовлено в ветке 2.3.0
 - Stars, подарки, переводы и шахматные функции (требуют миграций и тестирования).
